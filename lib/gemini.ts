@@ -1,17 +1,18 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { readFile } from "fs/promises";
+import {GoogleGenerativeAI} from "@google/generative-ai";
+import {readFile} from "fs/promises";
 import path from "path";
 
-const PROMPT = `この写真に写っている人物をモチーフに、3DCG風のポップでコミカルなキャラクターにデフォルメされたDesigners Toyの商材写真を制作して。配色はCommercial Pop。彩度が極めて高く、原色に近い構成をしている。ポーズを誇張して、頭からつま先まで全身が入った画像にすること。ただし、服装は2枚目の写真にある服を着せること。
+const PROMPT = `この写真に写っている人物をモチーフに、3DCG製のポップでコミカルなキャラクターにデフォルメされたDesigners Toyの商材写真を制作して。配色はCommercial Pop。彩度が極めて高く、原色に近い構成をしている。ポーズを誇張して、頭からつま先まで全身が入った画像にすること。ただし、服装は2枚目の写真にある服を着せること。
 
 重要な指示:
+- 平面的な表現を避け、3DCG風の表現を徹底すること。
 - 背景は完全に均一な白色で塗りつぶしてください
 - 被写体と背景の境界は明確にしてください
 - 背景にグラデーションや影を入れないでください`;
 
 const REFERENCE_IMAGE_PATH = path.join(
   process.cwd(),
-  "public/reference/costume.jpg"
+  "public/reference/costume.jpg",
 );
 
 async function loadReferenceImage(): Promise<{
@@ -19,17 +20,16 @@ async function loadReferenceImage(): Promise<{
   mimeType: string;
 }> {
   const buffer = await readFile(REFERENCE_IMAGE_PATH);
-  return { data: buffer.toString("base64"), mimeType: "image/jpeg" };
+  return {data: buffer.toString("base64"), mimeType: "image/jpeg"};
 }
 
 export async function generateImage(
   imageBuffer: Buffer,
-  mimeType: string
-): Promise<{ buffer: Buffer; mimeType: string }> {
+  mimeType: string,
+): Promise<{buffer: Buffer; mimeType: string}> {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   const model = genAI.getGenerativeModel({
-    model:
-      process.env.GEMINI_MODEL ?? "gemini-3-pro-image-preview",
+    model: process.env.GEMINI_MODEL ?? "gemini-3-pro-image-preview",
     generationConfig: {
       // @ts-expect-error responseModalities is supported but not yet in types
       responseModalities: ["TEXT", "IMAGE"],
