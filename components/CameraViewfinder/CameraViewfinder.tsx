@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { startCamera, stopCamera, captureFrame } from "@/lib/camera";
+import { Icon } from "@iconify/react";
+import {
+  startCamera,
+  stopCamera,
+  captureFrame,
+  readFileAsDataUrl,
+  type FacingMode,
+} from "@/lib/camera";
 import { sessionStore } from "@/lib/session-store";
 import styles from "./CameraViewfinder.module.css";
 
@@ -10,6 +17,8 @@ type Phase = "camera" | "preview" | "generating" | "result" | "error";
 export default function CameraViewfinder() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const facingRef = useRef<FacingMode>("environment");
   const [phase, setPhase] = useState<Phase>("camera");
   const [captured, setCaptured] = useState<string | null>(null);
   const [generated, setGenerated] = useState<string | null>(null);
@@ -27,7 +36,10 @@ export default function CameraViewfinder() {
     try {
       setErrorMsg(null);
       if (videoRef.current) {
-        streamRef.current = await startCamera(videoRef.current);
+        streamRef.current = await startCamera(
+          videoRef.current,
+          facingRef.current
+        );
       }
     } catch {
       setErrorMsg("カメラにアクセスできません");
@@ -35,7 +47,6 @@ export default function CameraViewfinder() {
     }
   }, [releaseCamera]);
 
-  // Mount/unmount only — guaranteed cleanup on navigation
   useEffect(() => {
     initCamera();
     return () => {
@@ -50,6 +61,32 @@ export default function CameraViewfinder() {
     setCaptured(dataUrl);
     releaseCamera();
     setPhase("preview");
+  };
+
+  const handleFlip = () => {
+    facingRef.current =
+      facingRef.current === "environment" ? "user" : "environment";
+    initCamera();
+  };
+
+  const handlePickFile = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setCaptured(dataUrl);
+      releaseCamera();
+      setPhase("preview");
+    } catch {
+      setErrorMsg("ファイルの読み込みに失敗しました");
+      setPhase("error");
+    }
+    // reset so the same file can be selected again
+    e.target.value = "";
   };
 
   const handleRetake = () => {
@@ -78,7 +115,9 @@ export default function CameraViewfinder() {
       sessionStore.add(data.imageDataUrl);
       setPhase("result");
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "画像生成に失敗しました");
+      setErrorMsg(
+        err instanceof Error ? err.message : "画像生成に失敗しました"
+      );
       setPhase("error");
     }
   };
@@ -93,7 +132,14 @@ export default function CameraViewfinder() {
 
   return (
     <div className={styles.viewfinder}>
-      {/* video is always in the DOM so videoRef is stable */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className={styles.hiddenInput}
+        onChange={handleFileChange}
+      />
+
       <video
         ref={videoRef}
         autoPlay
@@ -105,8 +151,22 @@ export default function CameraViewfinder() {
 
       {phase === "camera" && (
         <div className={styles.actions}>
+          <button
+            className={styles.iconButton}
+            onClick={handlePickFile}
+            aria-label="写真を選択"
+          >
+            <Icon icon="mdi:image-outline" width={28} height={28} />
+          </button>
           <button className={styles.shutter} onClick={handleCapture}>
             <span className={styles.shutterInner} />
+          </button>
+          <button
+            className={styles.iconButton}
+            onClick={handleFlip}
+            aria-label="カメラ切替"
+          >
+            <Icon icon="mdi:camera-flip-outline" width={28} height={28} />
           </button>
         </div>
       )}
