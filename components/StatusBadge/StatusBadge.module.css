@@ -1,0 +1,20 @@
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  background: #eee;
+  color: #333;
+}
+
+.pending {
+  background: #eee;
+}
+
+.processing {
+  background: #def;
+}
+
+.failed {
+  background: #fdd;
+}
