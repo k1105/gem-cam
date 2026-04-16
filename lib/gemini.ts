@@ -2,8 +2,7 @@ import {GoogleGenerativeAI} from "@google/generative-ai";
 import {readFile} from "fs/promises";
 import path from "path";
 
-const PROMPT = `この写真に写っている人物をモチーフに、3DCG製のポップでコミカルなキャラクターにデフォルメされたDesigners Toyの商材写真を制作して。配色はCommercial Pop。彩度が極めて高く、原色に近い構成をしている。ポーズを誇張して、頭からつま先まで全身が入った画像にすること。ただし、服装は2枚目の写真にある服を着せること。
-
+const PROMPT = `この写真に写っている人物をモチーフに、つけまつげや髪の毛を染めているような、ガーリーで可愛いギャルメイクをした3DCG製のポップでコミカルなキャラクターにデフォルメされたDesigners Toyの商材写真を制作して。配色はCommercial Pop。彩度が極めて高く、原色に近い構成をしている。ポーズを誇張して、頭からつま先まで全身が入った画像にすること。ただし、2枚目の写真のユニフォームを着せてください。
 重要な指示:
 - 平面的な表現を避け、3DCG風の表現を徹底すること。
 - 背景は完全に均一な白色で塗りつぶしてください
@@ -12,7 +11,7 @@ const PROMPT = `この写真に写っている人物をモチーフに、3DCG製
 
 const REFERENCE_IMAGE_PATH = path.join(
   process.cwd(),
-  "public/reference/costume.jpg",
+  "public/reference/costume_girl.jpg",
 );
 
 async function loadReferenceImage(): Promise<{
